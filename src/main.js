@@ -10,6 +10,8 @@ class Main {
     this._keys();
     this._init();
     this.anime = false;
+    this._textswich = false;
+    this._texSpeed = 0.005;
 
     this._initPlayer();
 
@@ -21,6 +23,8 @@ class Main {
     this._cubes = [];
     this._spanid = 0;
     this._pos = 0;
+    this._spCount = 0;
+
     // ソングりストの定義
     this._commands = {
       song1: () =>
@@ -314,6 +318,7 @@ class Main {
       const pos = this._pos;
       const beat = this._player.findBeat(pos);
       const ch = this._player.findChord(pos);
+      const cr = this._player.findChorus(pos);
 
       // cube 出現
       for (let i = this._spanid; i < this._lyrics.length; i++) {
@@ -366,13 +371,26 @@ class Main {
         if (lyr.animeFrag == 3) {
           if (!beat) { break; }
           const bp = beat.progress(pos);
-          this.threeMng.cubeMove3(i, bp);
-        }
-      }
-      //床移動
-      //this.floor.material.map.offset.x -= Math.sin(this._camR) * this.floorSPD / 4;
-      //this.floor.material.map.offset.y += Math.cos(this._camR) * this.floorSPD / 4;
+          this.threeMng.cubeMove3(i, bp, pos);
+          //sphereの回転
+          //this.threeMng.sphereMove(i, 0.01);
 
+        }
+
+      }
+
+      //床移動
+      this.threeMng.floorMove(this._texSpeed);
+
+      //this.floor.material.map.offset.y += Math.cos(this._camR) * this.floorSPD / 4;
+      if (cr !== null && !this._textswich) {
+        this._textswich = true;
+        this._texSpeed += 0.005;
+        this.threeMng.sphereChange(this._textswich);
+      } else if (cr == null && this._textswich) {
+        this._textswich = false;
+        this.threeMng.sphereChange(this._textswich);
+      }
       this.update(delta);
     }
 

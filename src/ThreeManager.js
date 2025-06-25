@@ -22,19 +22,22 @@ export class ThreeManager {
         this._renderer.setClearColor(0x000088);
         //this._renderer.shadowMap.enabled = true;
 
-        //　フロア作成
-        const sphereTex = new THREE.TextureLoader().load('src/img/space.png');
-        sphereTex.wrapS = sphereTex.wrapT = THREE.RepeatWrapping;
-        sphereTex.repeat.set(32, 16);
+        //　Sphere 作成
+        this._sphereTex = new THREE.TextureLoader().load('src/img/space.png');
+        this._sphereTex.wrapS = this._sphereTex.wrapT = THREE.RepeatWrapping;
+        this._sphereTex.repeat.set(32, 16);
+        this._sphereTex2 = new THREE.TextureLoader().load('src/img/grid.png');
+        this._sphereTex2.wrapS = this._sphereTex2.wrapT = THREE.RepeatWrapping;
+        this._sphereTex2.repeat.set(64, 32);
         //
         const geometry = new THREE.SphereGeometry(500, 64, 64);
 
         const sphereMaterial = new THREE.MeshBasicMaterial({
-            map: sphereTex,
+            map: this._sphereTex,
             side: THREE.BackSide,
         });
-        const sphere = new THREE.Mesh(geometry, sphereMaterial);
-        this._scene.add(sphere);
+        this._sphere = new THREE.Mesh(geometry, sphereMaterial);
+        this._scene.add(this._sphere);
         //this.floor = floor;
 
         // 光源(上部)
@@ -68,7 +71,7 @@ export class ThreeManager {
             0.1,
             1200
         );
-        this._camdist = 52;
+        this._camdist = 55;
 
         this._camX = 0;
         this._camY = 0;
@@ -238,7 +241,7 @@ export class ThreeManager {
         // cube position 2の広がり具合
         //const depfl = 20;
         // ターゲット1までの中心からの距離
-        const dist = 40;
+        const dist = 45;
         // ターゲット表示時の位置予測
         const yh = (this._camArrowH * 30) / Math.PI + this._camH;
         const yv = (this._camArrowV * 30) / Math.PI + this._camV;
@@ -256,13 +259,13 @@ export class ThreeManager {
         if (ws == 's') {
             x1 = dist * Math.sin(yh) * Math.sin(yv)
                 - Math.cos(yh) * (Math.random() * wl / 2 * dep2);
-            y1 = (Math.random() - 0.5) * dep
+            y1 = (Math.random() - 0.5) * dep * Math.cos(yv)
                 + dist * Math.cos(yv);
             z1 = dist * Math.cos(yh) * Math.sin(yv)
                 + Math.sin(yh) * (Math.random() * wl * dep2);
             //重なり判定
             if (y1 - 3 < this._yd && this._yd < y1 + 3) {
-                console.log('check', i);
+                //console.log('check', i);
                 y1 += 3 * (Math.random() < 0.5 ? -1 : 1);
             }
             this._yd = y1;
@@ -347,20 +350,45 @@ export class ThreeManager {
     cubeMove3(i, bp) {
         const cube = this._cubes[i];
 
+        const x = cube.userData.target[3];
+        const y = cube.userData.target[4];
+        const z = cube.userData.target[5];
         const rh = cube.userData.target[6];
         const rv = cube.userData.target[7];
+
         if (bp <= 0.5) {
             const eo = Ease.sineOut(bp);
-            cube.position.x = eo * 5 * (Math.sin(rh) * Math.sin(rv)) + cube.userData.target[3];
-            cube.position.y = eo * 5 * (Math.cos(rv)) + cube.userData.target[4];
-            cube.position.z = eo * 5 * (Math.cos(rh) * Math.sin(rv)) + cube.userData.target[5];
+            cube.position.x = eo * 5 * (Math.sin(rh) * Math.sin(rv)) + x;
+            cube.position.y = eo * 5 * (Math.cos(rv)) + y;
+            cube.position.z = eo * 5 * (Math.cos(rh) * Math.sin(rv)) + z;
         } else {
             const ei = Ease.sineIn(bp);
-            cube.position.x = (1 - ei) * 5 * (Math.sin(rh) * Math.sin(rv)) + cube.userData.target[3];
-            cube.position.y = (1 - ei) * 5 * (Math.cos(rv)) + cube.userData.target[4];
-            cube.position.z = (1 - ei) * 5 * (Math.cos(rh) * Math.sin(rv)) + cube.userData.target[5];
+            cube.position.x = (1 - ei) * 5 * (Math.sin(rh) * Math.sin(rv)) + x;
+            cube.position.y = (1 - ei) * 5 * (Math.cos(rv)) + y;
+            cube.position.z = (1 - ei) * 5 * (Math.cos(rh) * Math.sin(rv)) + z;
         }
     }
+    //sphereの回転
+    sphereMove(i,rot){
+        const cube = this._cubes[i];
+
+        const x = cube.userData.target[3];
+        const z = cube.userData.target[5];
+        const rh = cube.userData.target[6];
+        const rv = cube.userData.target[7];
+        const rd = cube.userData.target[8];
+        let theta = rh + rot;
+        if (theta > Math.PI * 2) { theta = 0 }
+        cube.userData.target[3] = rd * Math.sin(theta) * Math.sin(rv);
+        cube.userData.target[5] = rd * Math.cos(theta) * Math.sin(rv);
+        cube.userData.target[6] = theta;
+        cube.lookAt(0,0,0);
+    }
+
+    floorMove(spd) {
+        this._sphere.material.map.offset.x += spd;
+    }
+
     cubeView(i, val) {
         const cube = this._cubes[i];
         for (let i = 0; i < 6; i++) {
@@ -403,7 +431,13 @@ export class ThreeManager {
     tapEnd(d) {
         this._isSwiping = true;
     }
-
+    sphereChange(b) {
+        if (b) {
+            this._sphere.material.map = this._sphereTex2;
+        } else {
+            this._sphere.material.map = this._sphereTex;
+        }
+    }
 
     render() {
         // レンダリング処理
