@@ -27,33 +27,172 @@
   z-index: 2;
 }
 
+/* 再生ボタン / Play button */
 #control {
   position: absolute;
   right: 10px;
   top: 10px;
+  padding-right: 10px;
+  border-right: 1px solid #fff9;
   z-index: 2;
 }
 
-/* 再生ボタン / Play button */
-#control {
-  font-size: 21px;
-  padding-right: 10px;
-  border-right: 1px solid #fff9;
-}
-
 #control.disabled {
-  display: none;
+  opacity: 0.3;
 }
 
 #control a {
-  color: rgb(99 208 226);
-  text-decoration: none;
+  opacity: 1.0;
 }
 
 #control a.disabled {
   opacity: 0.3;
 }
 
-#control a:hover {
-  color: rgb(255 148 56);
+/* オーバーレイ */
+.overlay {
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  animation: fadeInOverlay 0.5s ease-out forwards;
+}
+
+
+/* 横長（幅が高さ以上）のとき：左右に分割 */
+@media (min-aspect-ratio: 1/1) {
+  .overlay {
+    flex-direction: row;
+  }
+
+  .pane {
+    width: 50%;
+    height: 100%;
+    gap: 1vw;
+  }
+
+  .choice {
+    width: 60%;
+  }
+}
+
+/* 縦長（高さが幅より大）のとき：上下に分割 */
+@media (max-aspect-ratio: 1/1) {
+  .overlay {
+    flex-direction: column;
+  }
+
+  .pane {
+    width: 100%;
+    height: 50%;
+  }
+
+  .choice {
+    width: 45%;
+  }
+}
+
+.pane {
+  display: flex;
+  justify-content: center;
+    align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 2em;
+  flex-direction: column;
+  position: relative;
+}
+
+.fade-out {
+  animation: fadeOutOverlay 0.5s ease-out 0.6s forwards;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOutOverlay {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* 左側のcaption */
+.pane-1 {
+  position: relative;
+  background-image: url("/img/caption.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* 選択肢のボタン */
+.choice {
+  background-image: url("/img/board.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0.5rem 1rem;
+  font-family: 'Yomogi', cursive;
+  font-size: 2vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: black;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.choice:hover {
+  opacity: 0.5;
+}
+
+/* bounceアニメーション */
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-20px);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+
+  70% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.bounce {
+  animation: bounce 0.6s;
 }

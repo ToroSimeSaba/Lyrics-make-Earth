@@ -4,21 +4,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
   <link rel="StyleSheet" , href="./src/style.css" />
-  <title>Vite App</title>
-
+  <title>LyricsEarth</title>
 </head>
 
 <body>
+  <!-- オーバーレイ -->
+  <div id="overlay" class="overlay">
+    <div class="pane pane-1">
+    </div>
+    <div class="pane pane-2">
+      <div class="choice" data-value="song1">ストリートライト<br>加賀(ネギシャワーP)</div>
+      <div class="choice" data-value="song2">アリフレーション<br>雨良 Amala</div>
+      <div class="choice" data-value="song3">インフォーマルダイブ<br>99piano</div>
+      <div class="choice" data-value="song4">ハロー、フェルミ。<br>ど～ぱみん</div>
+      <div class="choice" data-value="song5">パレードレコード<br>きさら</div>
+      <div class="choice" data-value="song6">ロンリーラン<br>海風太陽</div>
+
+    </div>
+
+  </div>
   <!-- 再生コントロール / Playback control -->
   <div id="control">
-    <a href="#" id="play" class="disabled">P</a>
-    <a href="#" id="stop" class="disabled">S</a>
-    <a href="#" id="left" class="disabled">←</a>
-    <a href="#" id="up" class="disabled">↑</a>
-    <a href="#" id="down" class="disabled">↓</a>
-    <a href="#" id="right" class="disabled">→</a>
-    <a href="#" id="ms" class="disabled">O</a>
+    <a href="#" id="play" class="disabled"><img src="/img/playbtn.png" alt="Play"></a>
+    <a href="#" id="stop" class="disabled"><img src="/img/stopbtn.png" alt="Stop"></a>
   </div>
   <div id="view"></div>
   <div id="media"></div>

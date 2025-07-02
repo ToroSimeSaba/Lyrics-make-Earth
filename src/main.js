@@ -1,30 +1,137 @@
 // MikeToToro my-app ver 1.0
 
 import { Player, Ease } from 'textalive-app-api';
-import * as THREE from 'three';
-import { ThreeManager } from './ThreeManager';
+import { ThreeManager } from './ThreeManager'
+import { Selector } from './Selector'
+import { InputManager } from './InputManager'
+import { Lyric } from './Lyric';
 
 class Main {
   constructor() {
-    this.threeMng = new ThreeManager();
-    this._keys();
     this._init();
-    this.anime = false;
-    this._textswich = false;
-    this._texSpeed = 0.005;
-
-    this._initPlayer();
-
+    this.threeMng = new ThreeManager();
+    this.input = new InputManager(this);
     this._animate = this._animate.bind(this);
-
   }
-  _init() {
-    this._frameNum = 30;
-    this._cubes = [];
-    this._spanid = 0;
-    this._pos = 0;
-    this._spCount = 0;
+  start() {
+    this._animate();
+  }
+  //インプット処理
+  keys(keycode) {
+    //キー確認
+    if (keycode == 'Space') {
+      this.playControl();
+    } else if (keycode == 'Enter') {
+      this.playStop();
+    } else {
+      this.threeMng.cameraKey(keycode);
+    }
+  }
+  mouse(deltaX, deltaY) {
+    //カメラ処理
+    this.threeMng.cameraMouse(
+      deltaX / -50, deltaY / -50)
+  }
+  mouseWheel(deltaY) {
+    this.threeMng.cameraWheel(deltaY);
+  }
+  playControl() {
+    if (this._player) {
+      if (this._player.isPlaying) {
+        this._player.requestPause();
+      } else {
+        if (this._stop) {
+          this._player.timer.seek(0);
+          this._player.requestPlay();
+          this._stop = false;
+        } else {
+          this._player.requestPlay();
+        }
+      }
+    }
+  }
+  playStop() {
+    this._stop = true;
+    this._player.timer.seek(0);
+    this._player.requestStop();
+    this._resetall();
+  }
 
+  _onAppReady(app) {
+    if (app.managed) {
+      document.querySelector("#control").className = "disabled";
+    }
+
+    if (!app.songUrl) {
+      this._commands[this._song]();
+    }
+  }
+
+  _onVideoReady(v) {
+    // 歌詞のセットアップ
+    const lyrics = [];
+    if (v.firstChar) {
+      let c = v.firstChar;
+      while (c) {
+        lyrics.push(new Lyric(c, this._frameNum));
+        c = c.next;
+      }
+      //コード情報取得
+      const cmap = {};
+      const chords = this._player.data.getChords();
+      for (const c of chords) {
+        const w = c.name.charAt(0);
+        cmap[w] = (cmap[w] || 0) + 1;
+      };
+      this._rankChords = Object.entries(cmap).sort((a, b) => b[1] - a[1]);
+      this._lyrics = lyrics;
+    }
+  }
+
+  _onTimerReady() {
+    //cubeの作成
+    this.threeMng.initObjects(this._lyrics);
+    //sphere完成時のVector設定
+    this.threeMng.initSphere(this._lyrics.length);
+    //ボタン操作許可
+    this.input.buttonOn();
+    this._player.timer.seek(0);
+    this.start();
+    this._player.requestPlay();
+    this._stop = false;
+  }
+
+  _onPlay() {
+    this.anime = true;
+  }
+  _onPause() {
+    this.anime = false;
+  }
+  _onStop() {
+    this.anime = false;
+  }
+
+  // _onTimeUpdate(pos) {
+  // }
+
+  _onAppMediaChange() {
+    console.log("新しい再生楽曲が指定されました:", mediaUrl);
+  }
+
+  //初期設定
+  _init() {
+    //アニメーションの状態
+    this.anime = false;
+    //cubeアニメーションのフレーム数
+    this._frameNum = 30;
+    //cube出現済み番号
+    this._spanid = 0;
+    //サビ場面番号
+    this._sabi = 0;
+    //背景テクスチャ切り替え
+    this._textswich = false;
+    //sphere回転速度
+    this._sphereSpeed = 0.01 / (Math.PI * 2);
     // ソングりストの定義
     this._commands = {
       song1: () =>
@@ -123,9 +230,11 @@ class Main {
           },
         })
     };
+    // play状態
+    this._stop = true;
   }
   //プレイヤー関係
-  _initPlayer() {
+  _initPlayer(song) {
     const player = new Player({
       app: {
         token: "hkkD6dSKpzXej2xt",
@@ -146,6 +255,7 @@ class Main {
       },
       mediaElement: document.querySelector("#media")
     })
+    this._song = song;
 
     player.addListener({
       onAppReady: (app) => this._onAppReady(app),
@@ -154,172 +264,23 @@ class Main {
       onPlay: () => this._onPlay(),
       onPause: () => this._onPause(),
       onStop: () => this._onStop(),
-      onTimeUpdate: (pos) => this._onTimeUpdate(pos),
+      // onTimeUpdate: (pos) => this._onTimeUpdate(pos),
       onAppMediaChange: (mediaUrl) => this._onAppMediaChange(mediaUrl)
     })
     this._player = player;
   }
-  _onAppReady(app) {
-    if (app.managed) {
-      document.querySelector("#control").className = "disabled";
-    }
-
-    if (!app.songUrl) {
-      let sn = Math.floor(Math.random() * 6 + 1);
-      this._commands['song' + sn]();
-    }
-  }
-
-  _onVideoReady(v) {
-    // 歌詞のセットアップ
-    const lyrics = [];
-    if (v.firstChar) {
-      let c = v.firstChar;
-      while (c) {
-        lyrics.push(new Lyric(c, this._frameNum));
-        c = c.next;
-      }
-
-      this.threeMng.InitObjects(lyrics, this._frameNum);
-      this._lyrics = lyrics;
-    }
-
-    console.log('lyrics ok');
-    //
-
-  }
-
-  _onTimerReady() {
-    console.log('onTimer');
-    document.querySelector("#control > a#play").className = "";
-    document.querySelector("#control > a#stop").className = "";
-    document.querySelector("#control > a#left").className = "";
-    document.querySelector("#control > a#up").className = "";
-    document.querySelector("#control > a#down").className = "";
-    document.querySelector("#control > a#right").className = "";
-    console.log("開始");
-    this.start();
-    this._player.requestPlay();
-  }
-
-  _onPlay() {
-    console.log('onplay');
-    this.anime = true;
-  }
-  _onPause() {
-    console.log('Pause');
-    this.anime = false;
-  }
-  _onStop() {
-    console.log('Stop');
-    this.anime = false;
-    this.resetall();
-  }
-
-  _onTimeUpdate(pos) {
-    //console.log("再生位置のアップデート onTimer:", pos, "ミリ秒")
-    this._pos = pos;
-  }
-
-  _onAppMediaChange() {
-    console.log("新しい再生楽曲が指定されました:", mediaUrl);
-  }
-
-  //インプット関連
-  _keys() {
-    //キー確認
-    document.addEventListener('keydown', (e) => {
-      this.threeMng.cameraKey(e.code);
-      if (e.code == 'Space') {
-        this.playControl();
-      }
-    });
-    //ボタン定義
-    this.playButton = document.querySelector("#control > a#play");
-    this.stopButton = document.querySelector("#control >a#stop");
-    this.leftButton = document.querySelector("#control > a#left");
-    this.upButton = document.querySelector("#control >a#up");
-    this.downButton = document.querySelector("#control > a#down");
-    this.rightButton = document.querySelector("#control >a#right");
-    this.msButton = document.querySelector("#control >a#ms");
-
-    // イベント登録（アロー関数を使って this を保つ）
-    this.playButton.addEventListener("click", (e) => this.handlePlayClick(e));
-    this.stopButton.addEventListener('click', (e) => this.handleStopClick(e));
-    this.leftButton.addEventListener('click', (e) => this.handleLeftClick(e));
-    this.upButton.addEventListener('click', (e) => this.handleUpClick(e));
-    this.downButton.addEventListener('click', (e) => this.handleDownClick(e));
-    this.rightButton.addEventListener('click', (e) => this.handleRightClick(e));
-    this.msButton.addEventListener('click', (e) => this.handleMSClick(e));
-  }
-  handlePlayClick(e) {
-    e.preventDefault();
-    this.playControl();
-  }
-  handleStopClick(e) {
-    if (this._player) {
-      this._player.requestStop();
-    }
-  }
-  _tap() {
-    document.addEventListener('touchstart', function (e) {
-      this.threeMng.tapStart(e);
-    });
-
-    document.addEventListener('touchmove', function (e) {
-      this.threeMng.tapMove(e);
-    });
-
-    document.addEventListener('touchend', function () {
-      this.threeMng.tapEnd(e);
-    });
-  }
-  handleLeftClick(e) {
-    e.preventDefault();
-    this.threeMng.cameraKey('ArrowLeft');
-  }
-  handleUpClick(e) {
-    e.preventDefault();
-    this.threeMng.cameraKey('ArrowUp');
-  }
-  handleDownClick(e) {
-    e.preventDefault();
-    this.threeMng.cameraKey('ArrowDown');
-  }
-  handleRightClick(e) {
-    e.preventDefault();
-    this.threeMng.cameraKey('ArrowRight');
-  }
-  handleMSClick(e) {
-    e.preventDefault();
-    this.threeMng.cameraKey('Numpad5');
-  }
-  playControl() {
-    if (this._player) {
-      if (this._player.isPlaying) {
-        this._player.requestPause();
-      } else {
-        this._player.requestPlay();
-      }
-    }
-  }
-
+  //アニメーション関係
   _animate() {
 
     requestAnimationFrame(this._animate);
     //
     if (this.anime) {
-
-      const now = performance.now();
-      const delta = (now - this._lastTime) / 1000;
-      this._lastTime = now;
       //
       //const pos = this._player.timer.position;
-      const pos = this._pos;
+      const pos = this._player.timer.position;
       const beat = this._player.findBeat(pos);
       const ch = this._player.findChord(pos);
       const cr = this._player.findChorus(pos);
-
       // cube 出現
       for (let i = this._spanid; i < this._lyrics.length; i++) {
         const lyr = this._lyrics[i];
@@ -329,10 +290,11 @@ class Main {
             const ws = lyr.wordstat;
             const wl = lyr.wordcount;
             //カメラの向きによって目的地変更
-            this.threeMng.cubeTarget(i, ws, wl);
+            this.threeMng.cubeTarget(i, ws, wl, this._frameNum);
             //コードによって色変更
             const ch1 = ch.name.charAt(0);
-            this.threeMng.cubeColor(i, ch1);
+            const index = this._rankChords.findIndex(obj => Object.values(obj).includes(ch1));
+            this.threeMng.cubeColor(i, index);
             this._spanid = i + 1;
           }
         }
@@ -344,162 +306,101 @@ class Main {
         //1次アニメーション
         if (lyr.animeFrag == 1) {
           const val = lyr.animeVal / this._frameNum;
-          if (val > 1) {
-            lyr.animeVal = 0;
-            lyr.animeFrag = 2;
-          } else {
+          if (lyr.animeVal < this._frameNum) {
             this.threeMng.cubeMove1(i, val);
             //ターゲットをハイライト
             this.threeMng.cubeView(i, val);
             //1コマすすめる
             lyr.animeVal++;
+          } else {
+            lyr.animeVal = 0;
+            lyr.animeFrag = 2;
           }
         }
         //2次アニメーション
         if (lyr.animeFrag == 2) {
-          const val = lyr.animeVal / this._frameNum;
-          if (val > 1) {
-            lyr.animeVal = 0;
-            lyr.animeFrag = 3;
+          if (pos < lyr.endTime) {
+            this.threeMng.lookMe(i);
           } else {
-            this.threeMng.cubeMove2(i, val);
-            //1コマすすめる
-            lyr.animeVal++;
+            const val = lyr.animeVal / this._frameNum;
+            if (lyr.animeVal < this._frameNum) {
+              this.threeMng.cubeMove2(i, val);
+              //1コマすすめる
+              lyr.animeVal++;
+            } else {
+              lyr.animeVal = 0;
+              lyr.animeFrag = 3;
+              if (i >= this.threeMng.spherelimit) {
+                this.threeMng.changeCube(i);
+                lyr.animeFrag = 4;
+              }
+            }
           }
+
         }
         //3次アニメーション
         if (lyr.animeFrag == 3) {
           if (!beat) { break; }
           const bp = beat.progress(pos);
-          this.threeMng.cubeMove3(i, bp, pos);
-          //sphereの回転
-          //this.threeMng.sphereMove(i, 0.01);
-
+          this.threeMng.cubeMove3(i, bp);
         }
-
+        //4次アニメーション
+        if (lyr.animeFrag == 4) {
+          if (!beat) { break; }
+          const bp = beat.progress(pos);
+          this.threeMng.cubeMove4(i, bp);
+        }
       }
+      //sphereの回転
+      // for(let i=0;i<this._lyrics.length;i++){
+      //   this.threeMng.sphereMove(i, this._sphereSpeed);
+      // }
 
-      //床移動
-      this.threeMng.floorMove(this._texSpeed);
-
-      //this.floor.material.map.offset.y += Math.cos(this._camR) * this.floorSPD / 4;
+      //Chorusの処理
       if (cr !== null && !this._textswich) {
         this._textswich = true;
-        this._texSpeed += 0.005;
-        this.threeMng.sphereChange(this._textswich);
+        this.threeMng.backgroundChange(this._textswich, this._sabi);
+        this._sabi++;
+        if (this._sabi >= 5) { this._sabi = 0 };
       } else if (cr == null && this._textswich) {
         this._textswich = false;
-        this.threeMng.sphereChange(this._textswich);
+        this.threeMng.backgroundChange(this._textswich);
       }
-      this.update(delta);
+      //backgroundのテクスチャスクロール
+      if (this._textswich) {
+        this.threeMng.backtexMove(this._sabi);
+      }
     }
-
+    this.threeMng._cameraControl();
     this.threeMng.render();
 
   }
-
-  update(delta) {
-    // 必要に応じて他の更新処理も
-    this.threeMng.update(delta);
+  _update() {
+    this.threeMng.update();
   }
-
-  start() {
-    this._animate(this._pos);
-  }
-
-  resetall() {
+  _resetall() {
+    this.anime = false;
+    this.input.hidebtn();
     for (let i = 0; i < this._lyrics.length; i++) {
       const lyr = this._lyrics[i];
       lyr.animeFrag = 0;
       lyr.animeVal = 0;
       this.threeMng.cubeReset(i);
-      this._spanid = 0;
     }
+    this.threeMng.cubesArrayReset();
+    this.threeMng.initObjects(this._lyrics);
+    this._spanid = 0;
+    this._sabi = 0;
+    this.threeMng.render();
+    this.input.drawbtn();
   }
 }
 
-//マテリアル作成
-export class Mat {
-  constructor(texts) {
-    this.texts = texts;
-    const materials = [];
-  }
-
-  createTextTexture(text) {
-    const canvas = document.createElement('canvas');
-    const size = 256;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    // 背景透明 + 文字描画
-    ctx.fillStyle = 'rgb(127, 135, 248)';
-    ctx.fillRect(0, 0, size, size);
-    ctx.font = 'bold 200px sans-serif';
-    ctx.fillStyle = 'rgb(7, 9, 76)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, size / 2, size / 2);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-    return texture;
-  }
-
-  textToMat(text) {
-    const textMat = new THREE.MeshStandardMaterial({
-      map: this.createTextTexture(text.text),
-      transparent: true,
-      //side: THREE.DoubleSide
-    });
-
-    const materials = [
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // 右
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // 左
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // 上
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // 下
-      textMat,
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }), // 後
-    ];
-    for (let i = 0; i < 6; i++) {
-      materials[i].transparent = true;
-      materials[i].roughness = 0.7;
-      materials[i].metalness = 0.5;
-      materials[i].opacity = 0;
-    }
-    return materials;
-  }
-  getMaterials() {
-    return this.texts.map(text => this.textToMat(text))
-  }
+async function m() {
+  const selector = new Selector();
+  const selectedSong = await selector.getChoice();
+  const main = new Main();
+  main._initPlayer(selectedSong);
 }
 
-//歌詞情報作成
-class Lyric {
-  constructor(data, frameNum) {
-    //
-    const rate = 1000 / 60 * frameNum;
-    //
-    this.text = data.text;      // 歌詞文字
-    this.startTime = data.startTime - rate; // 開始タイム [ms]
-    this.endTime = data.endTime - rate;   // 終了タイム [ms]
-    this.duration = data.duration;  // 開始から終了迄の時間 [ms]
-    const wf = data.parent.firstChar;
-    const wl = data.parent.lastChar;
-    if (data == wf) {
-      this.wordstat = 's'
-    } else if (data == wl) {
-      this.wordstat = 'l';
-    } else {
-      this.wordstat = 'n';
-    }
-    this.wordcount = data.parent.charCount;;
-    this.wordpos = data.parent.pos;
-
-    this.animeFrag = 0;
-    this.animeVal = 0;
-
-  }
-}
-
-
-const main = new Main();
+m();

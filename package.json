@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "textalive-app-api": "^0.4.0",
-    "three": "^0.177.0"
+    "three": "^0.177.0",
+    "three-stdlib": "^2.36.0"
   }
 }
