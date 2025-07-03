@@ -36,7 +36,7 @@ export class ThreeManager {
         for (let i = sps ** 2 * 2; i < moji; i++) {
             const h = Math.random() * Math.PI * 2;
             const v = Math.random() * Math.PI;
-            const d = (2 + Math.random() * 2) * this._sdist;
+            const d = (2 + Math.random() * 6) * this._sdist;
             spoint[i] = this._calcVector(d, h, v);
             this._spoint[i] = spoint[i];
         }
@@ -56,11 +56,10 @@ export class ThreeManager {
             const cube = new THREE.Mesh(geometry, outMat[i]);
             //位置／回転の定義
             cube.position.set(this._x, this._y, this._z);
-
             //userData定義
             cube.userData.target = [];
             cube.userData.quat = [];
-
+            //パネルの追加
             this._scene.add(cube);
             this._cubes.push(cube);
         }
@@ -100,25 +99,9 @@ export class ThreeManager {
                 this._camdist += 1;
                 if (this._camdist > this._camdistMax) { this._camdist = this._camdistMax }
                 break;
-            case 'Numpad2':
-                this._camH = 0;
-                this._camV = Math.PI / 2;
-                break;
             case 'Numpad5':
                 this._camArrowH = 0;
                 this._camArrowV = 0;
-                break;
-            case 'Numpad4':
-                this._camH = Math.PI * 1.5;
-                this._camV = Math.PI / 2;
-                break;
-            case 'Numpad6':
-                this._camH = Math.PI / 2;
-                this._camV = Math.PI / 2;
-                break;
-            case 'Numpad8':
-                this._camH = Math.PI;
-                this._camV = Math.PI / 2;
                 break;
         }
     }
@@ -136,12 +119,19 @@ export class ThreeManager {
         const cube = this._cubes[i];
         // 1-2次アニメーション用
         // 縦方向の広がり具合
-        const ranV = (Math.random() - 0.5) * 6;
+        let ranV = (Math.random() - 0.5) * 6;
+        //ひとつ前のsとy座標が近似していた場合の対応
+        const sd = this._preSy - ranV;
+        if (Math.abs(sd) < 3) {
+            ranV += Math.sign(sd)  + ranV;
+        }
+        this._preSy = ranV;
         //　横方向の広がり具合
         const ranH = (Math.random() - 0.5) * 3 - (wl * 0.5 * 3);
         // ターゲット1までの中心からの距離
         const dist = this._camdist - this._camdistMin;
         // ターゲット表示時の位置予測
+        // yh x-z面の予測角度 , yv x-y面の予測角度
         let yh = (this._camArrowH / (Math.PI * 2)) * fn + this._camH;
         yh = ((yh % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         let yv = (this._camArrowV / (Math.PI * 2)) * fn + this._camV;
@@ -160,11 +150,7 @@ export class ThreeManager {
             x1 = dist * sinh * sinv - ranV * sinh * cosv + ranH * cosh;
             y1 = dist * cosv + ranV * sinv;
             z1 = dist * cosh * sinv - ranV * cosh * cosv - ranH * sinh;
-            const sd = this._preSy - y1;
-            if (Math.abs(sd) < 3) {
-                y1 += Math.sign(sd) * (sd % 3);
-            }
-            this._preSy = y1;
+
         } else {
             const prex = this._cubes[i - 1].userData.target[0];
             const prey = this._cubes[i - 1].userData.target[1];
@@ -173,28 +159,27 @@ export class ThreeManager {
             y1 = prey;
             z1 = prez - (3 * sinh);
         }
+        //ターゲット代入
         cube.userData.target[0] = x1;
         cube.userData.target[1] = y1;
         cube.userData.target[2] = z1;
-
+        //球体の任意の座標指定
         const x2 = this._spoint[i].x;
         const y2 = this._spoint[i].y;
         const z2 = this._spoint[i].z;
         const spherical = new THREE.Spherical().setFromVector3(this._spoint[i]);
-        //ランダムな角度設定
+        //球体座標に対する角度と距離(計算用)
         const rh = spherical.theta;
         const rv = spherical.phi;
-        //中心からの距離
         const rdist = spherical.radius;
-
+        //ターゲット代入
         cube.userData.target[3] = x2;
         cube.userData.target[4] = y2;
         cube.userData.target[5] = z2;
         cube.userData.target[6] = rh;
         cube.userData.target[7] = rv;
         cube.userData.target[8] = rdist;
-
-        //Quaternion 初期値
+        //Quaternion関連
         const firstQuat = cube.quaternion.clone();
         const target1Position = new THREE.Vector3(
             this._camdist * sinh * sinv,
@@ -338,7 +323,7 @@ export class ThreeManager {
     changeCube(i) {
         const cube = this._cubes[i];
         cube.geometry.dispose();
-        const geometry = new THREE.SphereGeometry(1, 16, 8);
+        const geometry = new THREE.SphereGeometry(1.5, 16, 8);
         const material = new THREE.MeshBasicMaterial({
             color: this._ecol[i % 8],
             transparent: true,
@@ -380,7 +365,7 @@ export class ThreeManager {
         this._camV = Math.PI / 2;
 
         //カメラ中心からの距離限界値
-        this._camdistMin = 10;
+        this._camdistMin = 12;
         this._camdistMax = 100;
 
         //cubeの方向に関する変数定義
@@ -389,41 +374,19 @@ export class ThreeManager {
             Math.PI // 180度
         );
         //カラー関係
-        this._col = {
-            'N': 'rgb(255, 255, 255)',
-            'C': 'rgb(255, 148, 148)',
-            'D': 'rgb(255, 200, 156)',
-            'E': 'rgb(255, 237, 150)',
-            'F': 'rgb(162, 255, 177)',
-            'G': 'rgb(165, 237, 255)',
-            'A': 'rgb(171, 159, 255)',
-            'B': 'rgb(224, 145, 255)'
-        };
         this._ecol = [
-            '#1E2A56',
-            '#526199',
+            '#1B41C0',
+            '#0069EC',
             '#42503C',
-            '#1560FF',
+            '#669D34',
             '#BDB5A0',
-            '#8DA473',
-            '#BBBDC7',
-            '#CCCCEE'
+            '#C1A473',
+            '#009FF2',
+            '#6ABEDE'
         ];
         //重なり判定用
         this._preSy = 10;
-
-        //背景の星描画
-        // for (let i = 0; i < 100; i++) {
-        //     const geotest = new THREE.SphereGeometry(0.1, 8, 8); // 半径0.1の球
-        //     const matetest = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // 緑色
-        //     const sphetest = new THREE.Mesh(geotest, matetest);
-
-        //     // 座標を指定
-        //     sphetest.position.copy(this._spoint[i]);
-
-        //     this._scene.add(sphetest);
-        // }
-        //sabi用の配列数設定
+        //サビ用の配列数設定
         const sabix = [32, 64, 28, 32, 32];
         const sabiy = [16, 32, 14, 16, 16];
         this._sabispeed = [0.04, 0.04, 0.06, 0.06, 0.08];
@@ -434,63 +397,26 @@ export class ThreeManager {
             this._sabiTex[i].wrapS = this._sabiTex[i].wrapT = THREE.RepeatWrapping;
             this._sabiTex[i].repeat.set(sabix[i], sabiy[i]);
         }
-
-
     }
     //シーン、カメラ、レンダラーの初期化
     _initScene() {
         // シーンを作成
         this._scene = new THREE.Scene();
-        //this._scene.fog = new THREE.Fog(0xdd4488, 50, 200);
-
         // レンダラーを作成
         this._renderer = new THREE.WebGLRenderer({ antialias: true });
         this._renderer.setSize(window.innerWidth, window.innerHeight);
         this._renderer.setClearColor(0x000088);
-        //this._renderer.shadowMap.enabled = true;
-
         // 背景を 作成
         this._backgroundTex = new THREE.TextureLoader().load('/img/space.png');
         this._backgroundTex.wrapS = this._backgroundTex.wrapT = THREE.RepeatWrapping;
         this._backgroundTex.repeat.set(12, 6);
-
-        //
         const geometry = new THREE.SphereGeometry(500, 64, 64);
-
         const backgroundMaterial = new THREE.MeshBasicMaterial({
             map: this._backgroundTex,
             side: THREE.BackSide,
         });
         this._background = new THREE.Mesh(geometry, backgroundMaterial);
         this._scene.add(this._background);
-
-        // 光源(太陽)
-        // const sunlight = new THREE.DirectionalLight(0xffffff, 1);
-        // sunlight.position.set(450, 50, 0);
-        // sunlight.target.position.set(0, 0, 0);
-        // this._scene.add(sunlight);
-
-        // 光源(下部)
-        // const lightD = new THREE.DirectionalLight(0xffffff, 0.5);
-        // lightD.position.set(-450, -50, 0);
-        // lightD.target.position.set(0, 0, 0);
-        // this._scene.add(lightD);
-
-
-        //光源（4側面)
-        // const lights = [];
-        // for (let i = 0; i < 4; i++) {
-        //     lights[i] = new THREE.DirectionalLight(0xffffff, 1);
-        //     const x = [0, 50, 0, -50];
-        //     const z = [50, 0, -50, 0];
-        //     lights[i].position.set(x[i], 8, z[i]);
-        //     lights[i].target.position.set(0, 0, 0);
-        //     this._scene.add(lights[i]);
-        // }
-        // ライトの範囲を可視化
-        // const helper = new THREE.PointLightHelper(light);
-        // this._scene.add(helper);
-
         // カメラを作成（視野角, アスペクト比, 最近距離, 最遠距離）
         this._camera = new THREE.PerspectiveCamera(
             75,
@@ -498,18 +424,16 @@ export class ThreeManager {
             0.1,
             1200
         );
-
         this._camera.position.set(this._camX, this._camY, this._camZ);
         this._camera.lookAt(0, 0, 0); // 中心方向を見る
-
         const container = document.getElementById("view");
         container.appendChild(this._renderer.domElement);
     }
     _cameraControl() {
+        //x-z面方向
         this._camH += this._camArrowH / (Math.PI * 2);
-        //正規化
         this._camH = ((this._camH % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-
+        //x-y面方向
         this._camV += this._camArrowV / (Math.PI * 2);
         if (this._camV > Math.PI) {
             this._camV = Math.PI * 2 - this._camV;
@@ -528,32 +452,15 @@ export class ThreeManager {
         this._camX = cp.x;
         this._camY = cp.y;
         this._camZ = cp.z;
-        // this._camX = this._camdist * Math.sin(ch) * Math.sin(cv);
-        // this._camY = this._camdist * Math.cos(cv);
-        // this._camZ = this._camdist * Math.cos(ch) * Math.sin(cv);
-
         this._camera.position.set(this._camX, this._camY, this._camZ);
-        // this._testcam.position.set(this._camX, this._camY, this._camZ);
-        // this._camera.position.set(0, 120, 0);
         this._camera.lookAt(0, 0, 0); // 中心方向を見る
     }
     _resize() {
         let w = window.innerWidth;
         let h = window.innerHeight;
-
         this._camera.aspect = w / h;
         this._camera.updateProjectionMatrix();
-
         this._renderer.setSize(w, h);
-
-    }
-
-    _rotateZ(x, y, z, alpha) {
-        const sinA = Math.sin(alpha);
-        const cosA = Math.cos(alpha);
-        const newX = x * sinA + y * cosA;
-        const newY = x * cosA - y * sinA;
-        return { x: newX, y: newY, z: z }
     }
     _calcVector(d, h, v) {
         return new THREE.Vector3(

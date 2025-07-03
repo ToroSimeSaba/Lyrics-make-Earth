@@ -8,13 +8,13 @@ export class InputManager {
         document.querySelector("#control > a#play").className = "";
         document.querySelector("#control > a#stop").className = "";
     }
-    hidebtn(){
+    hidebtn() {
         const imgp = document.querySelector("#control > a#play > img");
         const imgs = document.querySelector("#control > a#stop > img");
         imgp.style.display = "none";
         imgs.style.display = "none";
     }
-    drawbtn(){
+    drawbtn() {
         const imgp = document.querySelector("#control > a#play > img");
         const imgs = document.querySelector("#control > a#stop > img");
         imgp.style.display = "inline";
@@ -29,7 +29,7 @@ export class InputManager {
         if (!this._isDragging) return;
         const deltaX = e.clientX - this._prevX;
         const deltaY = e.clientY - this._prevY;
-        //カメラ処理
+        // カメラ処理
         this.main.mouse(deltaX, deltaY);
         // 次の比較のために現在位置を保存
         this._prevX = e.clientX;
@@ -93,7 +93,6 @@ export class InputManager {
         // イベント登録
         this.playButton.addEventListener("click", (e) => this._handlePlayClick(e));
         this.stopButton.addEventListener('click', (e) => this._handleStopClick(e));
-
         //マウス変数定義
         this._isDragging = false;
         this._prevX = 0;

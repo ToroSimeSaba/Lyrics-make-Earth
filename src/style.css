@@ -33,7 +33,6 @@
   right: 10px;
   top: 10px;
   padding-right: 10px;
-  border-right: 1px solid #fff9;
   z-index: 2;
 }
 
@@ -103,13 +102,11 @@
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 2em;
   flex-direction: column;
   position: relative;
 }
 
-.overlay.fade-out {
+.fade-out {
   animation: fadeOutOverlay 0.5s ease-out 0.5s forwards;
 }
 
@@ -169,10 +166,10 @@
   text-align: center;
   transform: translateX(-50%);
   opacity: 0;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
 }
-.choice .gray {
-  color: gray;
+.choice.ape {
+  pointer-events: none;
 }
 
 .choice:hover {

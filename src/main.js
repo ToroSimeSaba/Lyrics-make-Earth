@@ -44,6 +44,11 @@ class Main {
           this._player.timer.seek(0);
           this._player.requestPlay();
           this._stop = false;
+        } else if (this._lyrics.length == this._spanid) {
+          //曲が最後まで再生されている
+          this._player.timer.seek(0);
+          this._resetall();
+          this._player.requestPlay();
         } else {
           this._player.requestPlay();
         }
@@ -351,11 +356,6 @@ class Main {
           this.threeMng.cubeMove4(i, bp);
         }
       }
-      //sphereの回転
-      // for(let i=0;i<this._lyrics.length;i++){
-      //   this.threeMng.sphereMove(i, this._sphereSpeed);
-      // }
-
       //Chorusの処理
       if (cr !== null && !this._textswich) {
         this._textswich = true;
