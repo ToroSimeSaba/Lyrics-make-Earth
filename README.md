@@ -15,8 +15,8 @@
 
 ![プレビュー動画です](preview/preview.gif)
 ## 開発
-[three-js](https://threejs.org)、viteを使用しています。
 Node.js をインストールしている環境で以下のコマンドを実行すると、開発用サーバが起動します。
+[three-js](https://threejs.org)、[vite](https://ja.vite.dev)を使用しています。パネルの角に丸みをつける目的で[three-stdlib]()も読み込んでいます。
 
 ``` bash
 npm install
@@ -24,7 +24,7 @@ npm run dev
 ```
 ## ビルド
 
-以下のコマンドで docs 以下にビルド済みファイルが生成されます。 サンプルコードのデモページ は GitHub Pages で、このリポジトリの docs 以下のファイルが提供されています。
+以下のコマンドで dist 以下にビルド済みファイルが生成されます。
 ``` bash
 npm run build
 ```
