@@ -14,6 +14,7 @@
 - 視点はマウス操作、キーボード操作、タッチ操作で移動や接近ができます。
 
 ![プレビュー動画です](preview/preview.gif)
+
 ## 開発
 Node.js をインストールしている環境で以下のコマンドを実行すると、開発用サーバが起動します。
 [three-js](https://threejs.org)、[vite](https://ja.vite.dev)を使用しています。パネルの角に丸みをつける目的で[three-stdlib]()も読み込んでいます。
@@ -22,9 +23,16 @@ Node.js をインストールしている環境で以下のコマンドを実行
 npm install
 npm run dev
 ```
+### 開発にあたって
+
 ## ビルド
 
 以下のコマンドで dist 以下にビルド済みファイルが生成されます。
 ``` bash
 npm run build
 ```
+
+## 動作テスト
+以下の環境で動作テストを行なっています。
+- M1 Mac Studio , macOS 15.5
+- M2 iPad Air 13 , iPadOS 18.5 
