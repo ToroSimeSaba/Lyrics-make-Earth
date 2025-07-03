@@ -7,6 +7,12 @@ export class Selector {
             const view = document.getElementById("view");
             view.style.display = "none";
 
+            choices.forEach((choice, index) => {
+                setTimeout(() => {
+                    choice.style.transform = "translateX(0)";
+                    choice.style.opacity = "1";
+                }, index * 100);
+            })
             choices.forEach(choice => {
                 choice.addEventListener("click", () => {
                     const selectedValue = choice.dataset.value;
@@ -15,16 +21,17 @@ export class Selector {
                     choice.classList.remove("bounce");
                     void choice.offsetWidth; // 強制再描画（トリガーリセット）
                     choice.classList.add("bounce");
-
                     // アニメーション終了後にオーバーレイ非表示＆結果表示
                     choice.addEventListener("animationend", () => {
                         overlay.style.display = "none"; // オーバーレイを非表示に
                         view.style.display = "block";
                     }, { once: true }); // 一度だけ発火
-                    overlay.classList.add("fade-out");
                     resolve(selectedValue);
+
                 });
+
             });
+
         });
     };
 }
