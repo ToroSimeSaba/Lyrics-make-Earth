@@ -9,12 +9,8 @@ export class Selector {
             //ボタン出現
             choices.forEach((choice, index) => {
                 setTimeout(() => {
-                    choice.style.transform = "translateX(0)";
-                    choice.style.opacity = "1";
-                }, index * 100);
-                setTimeout(() => {
                     choice.classList.remove("ape");
-                }, 500);
+                }, index * 100 + 300);
             })
             choices.forEach(choice => {
                 choice.addEventListener("click", () => {
@@ -37,7 +33,6 @@ export class Selector {
                         view.style.display = "block";
                     }, { once: true }); // 一度だけ発火
                     resolve(selectedValue);
-
                 });
 
             });

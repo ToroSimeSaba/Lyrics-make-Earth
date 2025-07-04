@@ -50,15 +50,10 @@
 
 /* オーバーレイ */
 .overlay {
-  top: 0;
-  left: 0;
   width: 100vw;
   height: 100vh;
-  position: fixed;
   background: rgba(0, 0, 0, 0.8);
   display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 10;
   animation: fadeInOverlay 0.5s ease-out forwards;
 }
@@ -76,9 +71,10 @@
     gap: 1vw;
   }
 
-  .choice {
+  /* .choice {
     width: 60%;
-  }
+    height: 10%;
+  } */
 }
 
 /* 縦長（高さが幅より大）のとき：上下に分割 */
@@ -92,9 +88,9 @@
     height: 50%;
   }
 
-  .choice {
+  /* .choice {
     width: 45%;
-  }
+  } */
 }
 
 .pane {
@@ -103,7 +99,6 @@
   align-items: center;
   background: rgba(0, 0, 0, 0.5);
   flex-direction: column;
-  position: relative;
 }
 
 .fade-out {
@@ -138,7 +133,6 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  display: flex;
 }
 
 .pane-2 {
@@ -147,6 +141,7 @@
 
 /* 選択肢のボタン */
 .choice {
+  width: 60%;
   background-image: url("/img/board.png");
   background-size: contain;
   background-position: center;
@@ -154,18 +149,19 @@
   padding: 0.5rem 1rem;
   font-family: 'Yomogi', cursive;
   font-size: 2vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   color: black;
   cursor: pointer;
   text-align: center;
-  transform: translateX(-50%);
-  opacity: 0;
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
   transition: transform 0.4s ease-out, opacity 0.4s ease-out;
 }
+
 .choice.ape {
   pointer-events: none;
+  opacity: 0;
+  transform: translateX(-100%);
 }
 
 .choice:hover {
