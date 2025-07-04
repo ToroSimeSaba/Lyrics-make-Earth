@@ -1,16 +1,5 @@
-export default {
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        if (id.includes('three')) {
-                            return 'vendor_three';
-                        }
-                        return 'vendor';
-                    }
-                },
-            },
-        },
-    },
-}
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+    base: './',  // これが明示的な相対パスの設定
+});

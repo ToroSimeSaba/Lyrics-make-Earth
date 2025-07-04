@@ -123,7 +123,7 @@ export class ThreeManager {
         //ひとつ前のsとy座標が近似していた場合の対応
         const sd = this._preSy - ranV;
         if (Math.abs(sd) < 3) {
-            ranV += Math.sign(sd)  + ranV;
+            ranV += Math.sign(sd) + ranV;
         }
         this._preSy = ranV;
         //　横方向の広がり具合
@@ -393,7 +393,7 @@ export class ThreeManager {
         this._sabiTex = [];
         //背景テクスチャの作成
         for (let i = 0; i < 5; i++) {
-            this._sabiTex[i] = new THREE.TextureLoader().load(`/img/back${i}.png`);
+            this._sabiTex[i] = new THREE.TextureLoader().load("./img/back" + i + ".png");
             this._sabiTex[i].wrapS = this._sabiTex[i].wrapT = THREE.RepeatWrapping;
             this._sabiTex[i].repeat.set(sabix[i], sabiy[i]);
         }
@@ -407,7 +407,7 @@ export class ThreeManager {
         this._renderer.setSize(window.innerWidth, window.innerHeight);
         this._renderer.setClearColor(0x000088);
         // 背景を 作成
-        this._backgroundTex = new THREE.TextureLoader().load('/img/space.png');
+        this._backgroundTex = new THREE.TextureLoader().load('./img/space.png');
         this._backgroundTex.wrapS = this._backgroundTex.wrapT = THREE.RepeatWrapping;
         this._backgroundTex.repeat.set(12, 6);
         const geometry = new THREE.SphereGeometry(500, 64, 64);

@@ -134,19 +134,15 @@
 
 /* 左側のcaption */
 .pane-1 {
-  position: relative;
   background-image: url("/img/caption.png");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
 }
 
 .pane-2 {
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* 選択肢のボタン */
