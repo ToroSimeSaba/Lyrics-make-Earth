@@ -87,9 +87,15 @@ export class ThreeManager {
         switch (keyCode) {
             case 'ArrowRight':
                 this._camArrowH += 0.01;
+                if (this._camArrowH > 0.08) {
+                    this._camArrowH = 0.08;
+                }
                 break;
             case 'ArrowLeft':
                 this._camArrowH -= 0.01;
+                if (this._camArrowH < -0.08) {
+                    this._camArrowH = -0.08;
+                }
                 break;
             case 'ArrowUp':
                 this._camdist -= 1;
